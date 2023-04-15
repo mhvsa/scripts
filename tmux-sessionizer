@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# Description: Create a new tmux session for a project directory.
+# Credit: https://github.com/ThePrimeagen/.dotfiles/blob/master/bin/.local/scripts/tmux-sessionizer
+
+project_dirs=(
+    ~/Work/aic/
+    ~/Work/cybercare/
+    ~/Development/
+    ~/.local/bin/
+)
+
+# If a directory is passed as an argument, use that as the selected directory.
+if [[ $# -eq 1 ]]; then
+    selected=$1
+else
+    # Otherwise, use fzf to select a directory from a list of directories.
+    selected=$(find "${project_dirs[@]}" -mindepth 1 -maxdepth 1 -type d | fzf)
+fi
+
+# If no directory was selected, exit.
+if [[ -z $selected ]]; then
+    exit 0
+fi
+
+selected_name=$(basename "$selected" | tr . _)
+tmux_running=$(pgrep tmux)
+
+# If the selected directory is not a git repository, exit.
+if [[ -z $TMUX ]] && [[ -z $tmux_running ]]; then
+    tmux new-session -s $selected_name -c $selected
+    exit 0
+fi
+
+# If the selected directory is a git repository, create a new tmux session
+if ! tmux has-session -t=$selected_name 2> /dev/null; then
+    tmux new-session -ds $selected_name -c $selected
+fi
+
+# Switch to the selected tmux session.
+tmux switch-client -t $selected_name
+
