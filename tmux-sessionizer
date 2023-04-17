@@ -2,12 +2,13 @@
 # Description: Create a new tmux session for a project directory.
 # Credit: https://github.com/ThePrimeagen/.dotfiles/blob/master/bin/.local/scripts/tmux-sessionizer
 
-project_dirs=(
-    ~/Work/aic/
-    ~/Work/cybercare/
-    ~/Development/
-    ~/.local/bin/
-)
+
+# Load project directories from a config file.
+
+project_dirs=()
+while IFS= read -r line; do
+    project_dirs+=("$line")
+done < ~/.config/tmux-sessionizer/config
 
 # If a directory is passed as an argument, use that as the selected directory.
 if [[ $# -eq 1 ]]; then
