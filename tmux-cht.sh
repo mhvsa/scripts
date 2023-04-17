@@ -6,6 +6,30 @@
 # License: MIT
 # Version: 1.0.0
 
+# Print the help message.
+if [[ $# -eq 1 ]] && [[ $1 == "--help" ]]; then
+    echo "Usage: tmux-cht.sh [OPTION] [QUERY]"
+    echo "A script to search for cheat sheets using cht.sh, fzf, and bat."
+    echo ""
+    echo "Options:"
+    echo "  --help    Show this help message."
+    echo ""
+    echo "Examples:"
+    echo "  tmux-cht.sh                        # Select a language or command from a list of languages and commands."
+    echo "  tmux-cht.sh --help                 # Show this help message."
+    exit 0
+fi
+
+# If the config directory doesn't exist, then create it.
+if [[ ! -d ~/.config/tmux-cht.sh ]]; then
+    # Create config directory.
+    mkdir -p ~/.config/tmux-cht.sh
+    # Create languages file.
+    touch ~/.config/tmux-cht.sh/languages
+    # Create command file.
+    touch ~/.config/tmux-cht.sh/command
+fi
+
 # Select the language or command to search for. Use the XDG Base Directory Specification to store the languages and command files.
 selected=`cat ~/.config/tmux-cht.sh/languages ~/.config/tmux-cht.sh/command | fzf --height 20% --layout=reverse --prompt="Select Language or Command: "`
 if [[ -z $selected ]]; then
