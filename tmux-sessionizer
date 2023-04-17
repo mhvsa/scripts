@@ -1,10 +1,79 @@
 #!/usr/bin/env bash
 # Description: Create a new tmux session for a project directory.
-# Credit: https://github.com/ThePrimeagen/.dotfiles/blob/master/bin/.local/scripts/tmux-sessionizer
+# Forked from: https://github.com/ThePrimeagen/.dotfiles/blob/master/bin/.local/scripts/tmux-sessionizer
 
+# Help message.
+# Colors added just for fun. Use printf instead of echo to avoid escaping the backslash.
+if [[ $# -eq 1 ]] && [[ $1 == "--help" ]]; then
+    # A nice, blue color.
+    blue='\033[0;34m'
+    # No color.
+    nc='\033[0m'
+    # Print the help message.
+    printf "%s\n" ""
+    printf "%s\n" "Create a new tmux session for a project directory." 
+    printf "%s\n" ""
+    printf "${blue}%s\n  ${nc}%s\n" "Usage: " "tmux-sessionizer [OPTION] [DIRECTORY]"
+    printf "%s\n" ""
+    printf "${blue}%s${nc}%s\n" "Options:" ""
+    printf "%s\t\t%s\n" "  --add " "                                Add directories to the config file interactively."
+    printf "%s\t\t%s\n" "  --help" "                                Show this help message."
+    printf "%s\n" ""
+    printf "${blue}%s${nc}%s\n" "Examples:" ""
+    printf "%s\t\t%s\n" "  tmux-sessionizer                      " "Select a directory from a list of directories."
+    printf "%s\t\t%s\n" "  tmux-sessionizer --add                " "Add directories to the config file interactively."
+    printf "%s\t\t%s\n" "  tmux-sessionizer ~/projects/my-project" "Use the passed directory as the selected directory."
+    printf "%s\n" ""
+    exit 0
+fi
+
+# if [[ $# -eq 1 ]] && [[ $1 == "--help" ]]; then
+#     echo "Usage: tmux-sessionizer [OPTION] [DIRECTORY]"
+#     echo "Create a new tmux session for a project directory."
+#     echo ""
+#     echo "Options:"
+#     echo "  --add     Add directories to the config file interactively."
+#     echo "  --help    Show this help message."
+#     echo ""
+#     echo "Examples:"
+#     echo "  tmux-sessionizer                        # Select a directory from a list of directories."
+#     echo "  tmux-sessionizer --add                  # Add directories to the config file interactively."
+#     echo "  tmux-sessionizer ~/projects/my-project  # Use the passed directory as the selected directory."
+#     exit 0
+# fi
+
+# Create a config file if it doesn't exist.
+if [[ ! -f ~/.config/tmux-sessionizer/config ]]; then
+    echo "Creating ~/.config/tmux-sessionizer/config"
+    mkdir -p ~/.config/tmux-sessionizer
+    touch ~/.config/tmux-sessionizer/config
+fi
+
+# If no directories are in the config file, or flag --add was passed ask the user to add some.
+if [[ $# -eq 1 ]] && [[ $1 == "--add" ]] || [[ ! -s ~/.config/tmux-sessionizer/config ]]; then
+    echo "No directories found in ~/.config/tmux-sessionizer/config"
+    echo "Do you want to add interactivally directories to the config file? [y/n]"
+    read -r answer
+    if [[ $answer == "y" ]]; then
+        echo "Enter the directory path:"
+        read -r dir
+        while [[ $dir != "" ]]; do
+            # Parse any environment variables in the directory path.
+            dir=$(eval echo "$dir")
+            # Add the directory to the config file.
+            echo "$dir" >> ~/.config/tmux-sessionizer/config
+            echo "Enter the directory path:"
+            read -r dir
+        done
+    fi
+    if [[ ! -s ~/.config/tmux-sessionizer/config ]]; then
+        echo "No directories were added to the config file."
+        echo "Exiting..."
+        exit 0
+    fi
+fi
 
 # Load project directories from a config file.
-
 project_dirs=()
 while IFS= read -r line; do
     project_dirs+=("$line")
